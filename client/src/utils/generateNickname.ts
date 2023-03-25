@@ -44,6 +44,7 @@ const animals = [
 ];
 
 export function getNickname() {
+  if (typeof window === "undefined") return "";
   const nicknameFromLocalStorage = localStorage.getItem("nickname");
   if (nicknameFromLocalStorage) {
     return nicknameFromLocalStorage;

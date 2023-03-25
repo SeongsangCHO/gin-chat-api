@@ -7,9 +7,16 @@ import { getNickname } from "@/utils/generateNickname";
 
 const inter = Inter({ subsets: ["latin"] });
 
+type Message = {
+  nickname: string;
+  text: string;
+};
+
 export default function Home() {
   const socketRef = React.useRef<WebSocket>();
   const chatSendInputRef = React.useRef<HTMLInputElement>(null);
+  const [nickname, setNickname] = React.useState<string>("");
+  const [chatList, setChatList] = React.useState<Message[]>([]);
 
   React.useEffect(() => {
     socketRef.current = new WebSocket("ws://localhost:8080");
@@ -17,6 +24,7 @@ export default function Home() {
     const socket = socketRef.current;
     socket.addEventListener("open", (event) => {
       const nickname = getNickname();
+      setNickname(nickname);
       const userJoinData = JSON.stringify({
         type: "userJoin",
         nickname: nickname,
@@ -26,6 +34,9 @@ export default function Home() {
     });
 
     socket.addEventListener("message", (event) => {
+      const message: Message = JSON.parse(event.data);
+      setChatList((prev) => [...prev, message]);
+
       console.log("Received message:", event.data);
       // setSocketMessage(event.data);
     });
@@ -59,6 +70,12 @@ export default function Home() {
     if (!chat) return;
     chatSendInput.value = "";
   };
+  console.log(
+    nickname,
+    chatList.filter((chat) => {
+      console.log(chat.nickname);
+    })
+  );
   return (
     <>
       <Head>
@@ -69,8 +86,34 @@ export default function Home() {
       </Head>
       <main className={styles.main}>
         <h1 className={styles.title}>Chat</h1>
+        <h1>{nickname}님 안녕하세요!</h1>
         <section className={styles.chatSection}>
-          <div className={styles.chatList}></div>
+          <div className={styles.chatList}>
+            <div className={styles.myChatList}>
+              {chatList
+                .filter((chat) => chat.nickname === nickname)
+                .map((chat, index) => {
+                  return (
+                    <div key={index} className={styles.myChat}>
+                      <span>{chat.nickname}: </span>
+                      <span>{chat.text}</span>
+                    </div>
+                  );
+                })}
+            </div>
+            <div className={styles.otherChatList}>
+              {chatList
+                .filter((chat) => chat.nickname !== nickname)
+                .map((chat, index) => {
+                  return (
+                    <div key={index} className={styles.otherChat}>
+                      <span>{chat.nickname}: </span>
+                      <span>{chat.text}</span>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
 
           <form className={styles.chatSender} onSubmit={handleChatSend}>
             <input type="text" ref={chatSendInputRef} autoFocus />
