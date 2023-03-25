@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Inter } from "next/font/google";
 import styles from "@/styles/Home.module.css";
 import React from "react";
+import { getNickname } from "@/utils/generateNickname";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -15,8 +16,13 @@ export default function Home() {
     if (!socketRef.current) return;
     const socket = socketRef.current;
     socket.addEventListener("open", (event) => {
+      const nickname = getNickname();
+      const userJoinData = JSON.stringify({
+        type: "userJoin",
+        nickname: nickname,
+      });
       console.log("WebSocket connected");
-      socket.send("Hello Server!");
+      socket.send(userJoinData);
     });
 
     socket.addEventListener("message", (event) => {
